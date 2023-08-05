@@ -13,7 +13,10 @@ export class Synchronizer extends EventTarget {
   private localPeer?: Peer;
   private remoteConnections: DataConnection[] = [];
 
-  constructor(private readonly isMaster: boolean) {
+  constructor(
+    private readonly isMaster: boolean,
+    private host: string,
+  ) {
     super();
 
     if (isMaster) {
@@ -26,7 +29,7 @@ export class Synchronizer extends EventTarget {
 
   connect() {
     this.localPeer = new Peer(this.isMaster ? "0" : "1", {
-      host: "localhost",
+      host: this.host,
       port: 9009,
       path: "/sandwich",
       secure: false,

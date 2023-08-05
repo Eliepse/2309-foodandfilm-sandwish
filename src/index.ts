@@ -15,6 +15,7 @@ type Args = {
   id?: string;
   peerCount?: string;
   mediaName?: string;
+  host?: string;
 };
 
 const parameters: Args = args as Args;
@@ -56,6 +57,9 @@ const createWindow = (): void => {
   });
   ipcMain.on("get-peer-count", (e) => {
     e.returnValue = app.isPackaged;
+  });
+  ipcMain.on("get-server-host", (e) => {
+    e.returnValue = isMaster ? "localhost" : parameters.host ?? "192.168.1.1";
   });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {

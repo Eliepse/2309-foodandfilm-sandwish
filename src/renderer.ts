@@ -10,6 +10,7 @@ declare global {
     electron: {
       mediaPath: string;
       isProd: boolean;
+      serverHost: string;
     };
   }
 }
@@ -34,7 +35,7 @@ window.config
   .peerId()
   .then((peerId) => {
     const isMaster = peerId === "0";
-    const synchronizer = new Synchronizer(isMaster);
+    const synchronizer = new Synchronizer(isMaster, window.electron.serverHost);
     synchronizer.connect();
 
     // synchronizer.addEventListener("sync:video", (e: SynchronizerEvent) => {
