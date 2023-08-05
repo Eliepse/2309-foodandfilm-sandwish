@@ -7,7 +7,7 @@ export class VideoScreen extends EventTarget {
   private readonly halfScrollingDurationMs: number;
   private lastFrameTimeMs: [number, number] = [-1, -1];
   private readonly playTimeFactorMs: number;
-  public loaded: boolean = false;
+  public loaded = false;
 
   constructor(
     private readonly videoSrc: string,

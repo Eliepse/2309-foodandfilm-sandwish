@@ -1,8 +1,8 @@
 export class Animator {
   private startAt: Date;
   private lastUpdatedAt: Date;
-  private playing: boolean = false;
-  private shiftTimeMs: number = 0;
+  private playing = false;
+  private shiftTimeMs = 0;
 
   constructor(
     private readonly onUpdate: (deltaTime: number, elapsedTime: number) => void,
