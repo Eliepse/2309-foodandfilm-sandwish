@@ -1,38 +1,14 @@
-import { Animator } from "./Animator";
-
 export class VideoScreen extends EventTarget {
   private videos: HTMLVideoElement[] = [];
   private container?: HTMLElement;
-  private animator: Animator;
-  private readonly halfScrollingDurationMs: number;
-  private lastFrameTimeMs: [number, number] = [-1, -1];
-  private readonly playTimeFactorMs: number;
-  public loaded = false;
+  private startedAt: Date;
 
   constructor(
     private readonly videoSrc: string,
     private readonly scrollingDurationMs: number,
-    private readonly iterationDelayMs: number,
-    private readonly iteration: number,
     private readonly debugWidth?: number,
   ) {
     super();
-
-    /**
-     * This is the factor to compute the video.currentTime each
-     * time there is a new iteration (a video element is sent
-     * back at the beginning).
-     *
-     * This formula is a simplified version of:
-     *
-     * factor = (iterationDelay / (scrollingDuration / 2)) * 2
-     *
-     * Where both "2" are from the fact we have two videos elements
-     * revolving each half of scrollingDuration (=> *twice* a revolution).
-     */
-    this.playTimeFactorMs =
-      1 + (2 * this.iterationDelayMs) / this.scrollingDurationMs;
-    this.halfScrollingDurationMs = this.scrollingDurationMs / 2;
 
     if (this.scrollingDurationMs % 2 !== 0) {
       console.warn(
@@ -55,10 +31,11 @@ export class VideoScreen extends EventTarget {
       // video.src = this.videoSrc;
       video.loop = true;
       video.style.animationDuration = `${this.scrollingDurationMs}ms`;
-      video.style.animationDelay = `${this.scrollingDurationMs}ms`
+      video.style.animationDelay = `${(this.scrollingDurationMs / 2) * i}ms`;
       video.muted = true;
       video.autoplay = false;
       video.ariaLabel = i.toString();
+      video.addEventListener("animationiteration", () => this.rsyncVideo(i));
       video.load();
 
       this.videos[i] = video;
@@ -67,25 +44,11 @@ export class VideoScreen extends EventTarget {
 
     root.append(this.container);
 
-    // this.animator = new Animator((_deltaTime, elapsedTime) => {
-    //   this.updateVideo(
-    //     0,
-    //     elapsedTime,
-    //     (elapsedTime + this.halfScrollingDurationMs) % this.scrollingDurationMs,
-    //   );
-    //   this.updateVideo(
-    //     1,
-    //     elapsedTime,
-    //     (elapsedTime + this.scrollingDurationMs) % this.scrollingDurationMs,
-    //   );
-    // });
-
     fetch(this.videoSrc)
       .then((response) => response.blob())
       .then((blob) => {
         const url = URL.createObjectURL(blob);
         this.videos.forEach((v) => (v.src = url));
-        this.loaded = true;
         this.dispatchEvent(new Event("loaded"));
       });
 
@@ -96,38 +59,11 @@ export class VideoScreen extends EventTarget {
     }
   }
 
-  private updateVideo(
-    videoIndex: number,
-    elapsedTime: number,
-    iterationTime: number,
-  ): void {
-    // Update the position of the frames
-    this.videos[videoIndex].style.transform = `translate3d(${(
-      -200 * (iterationTime / this.scrollingDurationMs) +
-      100
-    ).toFixed(3)}%, 0px, 0px)`;
-
-    if (
-      -1 !== this.lastFrameTimeMs[videoIndex] &&
-      iterationTime < this.lastFrameTimeMs[videoIndex]
-    ) {
-      this.videos[videoIndex].currentTime = this.getVideoTimeSec(elapsedTime);
-    }
-
-    this.lastFrameTimeMs[videoIndex] = iterationTime;
-  }
-
-  private getVideoTimeSec(realTime: number): number {
-    // const delay = this.iteration * this.iterationDelayMs;
-    // return ((realTime + delay) * this.playTimeFactorMs) / 1000;
-    const delay =
-      (realTime / this.halfScrollingDurationMs + this.iteration) *
-      this.iterationDelayMs;
-    return (realTime + delay) / 1000;
-  }
-
-  resync(time: number) {
-    console.debug(time);
+  private rsyncVideo(videoIndex: number): void {
+    const video = this.videos[videoIndex];
+    const elapsedTimeMs = new Date().getTime() - this.startedAt.getTime();
+    const elapsedTimeSec = elapsedTimeMs / 1_000;
+    video.currentTime = elapsedTimeSec % video.duration;
   }
 
   isPaused() {
@@ -135,13 +71,10 @@ export class VideoScreen extends EventTarget {
   }
 
   play() {
-    this.videos[0].currentTime = this.getVideoTimeSec(0);
-    this.videos[1].currentTime = this.getVideoTimeSec(this.iterationDelayMs);
-
+    this.startedAt = new Date();
     this.videos.forEach((video) => {
       video.style.animationPlayState = "running";
-      video.play();
+      void video.play();
     });
-    // this.animator.play();
   }
 }

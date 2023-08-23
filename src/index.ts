@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain, session } from "electron";
-import { PeerServer } from "peer";
 import args from "node-args";
 import * as process from "process";
 import * as path from "path";
@@ -11,15 +10,21 @@ declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 type Args = {
-  mode?: string;
-  id?: string;
-  peerCount?: string;
+  help?: string;
   mediaName?: string;
-  host?: string;
+  time?: string;
 };
 
 const parameters: Args = args as Args;
-const isMaster = parameters.mode === "master";
+
+if ("help" in parameters) {
+  console.info("--help        Display this help message");
+  console.info("--mediaName   Path to the video to play");
+  console.info(
+    "--time        Time it takes for a frame to cross the entire screen",
+  );
+  process.exit();
+}
 
 console.debug(parameters);
 
@@ -28,24 +33,7 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
-let peerServer: ReturnType<typeof PeerServer>;
-
-if (isMaster) {
-  peerServer = PeerServer({
-    port: 9009,
-    path: "/sandwich",
-    key: "secure-sandwich",
-    allow_discovery: true,
-  });
-
-  console.log("Peer server started");
-}
-
 const createWindow = (): void => {
-  ipcMain.on("peerId", (e) => {
-    e.returnValue =
-      (isMaster ? "0" : parameters.id) ?? (Math.random() * 100000).toFixed(0);
-  });
   ipcMain.on("get-resource-path", (e) => {
     e.returnValue = path.join(
       app.isPackaged
@@ -56,12 +44,6 @@ const createWindow = (): void => {
   });
   ipcMain.on("get-is-prod", (e) => {
     e.returnValue = app.isPackaged;
-  });
-  ipcMain.on("get-peer-count", (e) => {
-    e.returnValue = app.isPackaged;
-  });
-  ipcMain.on("get-server-host", (e) => {
-    e.returnValue = isMaster ? "localhost" : parameters.host ?? "192.168.1.1";
   });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -75,13 +57,13 @@ const createWindow = (): void => {
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    title: isMaster ? "Master" : "Listener",
+    title: "Food & Film - Expo Aubervillier - Sandwich",
     width: 1800,
     height: 800,
     fullscreen: true,
     simpleFullscreen: true,
     fullscreenable: true,
-    alwaysOnTop: true,
+    alwaysOnTop: app.isPackaged,
     autoHideMenuBar: true,
     webPreferences: {
       webSecurity: false,
@@ -91,7 +73,7 @@ const createWindow = (): void => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+  void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   mainWindow.setPosition(2000, 64);
   // const whichScreen = screen.getDisplayNearestPoint({x: winBounds.x, y: winBounds.y});
@@ -102,13 +84,6 @@ const createWindow = (): void => {
   // Open the DevTools.
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
-  }
-
-  if (peerServer) {
-    peerServer.on("connection", (client) => {
-      console.debug(client.getId());
-      mainWindow.webContents.send("peerConnected", client.getId());
-    });
   }
 };
 
