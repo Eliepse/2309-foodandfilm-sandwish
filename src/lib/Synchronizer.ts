@@ -49,6 +49,7 @@ export class Synchronizer extends EventTarget {
 
   private connectPeer(peerId: string): void {
     const connection = this.localPeer.connect(peerId);
+    this.dispatchEvent(new Event("peer-connected"));
     this.remoteConnections.push(connection);
   }
 

@@ -5,7 +5,8 @@
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
-    "start": "electron-forge start -- --mode master",
+    "start": "electron-forge start",
+    "start-master": "electron-forge start -- --mode master",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
@@ -44,6 +45,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "node-args": "^2.1.8",
     "peer": "^1.0.0",
-    "peerjs": "^1.4.7"
+    "peerjs": "^1.4.7",
+    "ws": "^8.13.0"
   }
 }

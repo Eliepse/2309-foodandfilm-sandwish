@@ -21,29 +21,31 @@ type Args = {
 const parameters: Args = args as Args;
 const isMaster = parameters.mode === "master";
 
+console.debug(parameters);
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+let peerServer: ReturnType<typeof PeerServer>;
+
+if (isMaster) {
+  peerServer = PeerServer({
+    port: 9009,
+    path: "/sandwich",
+    key: "secure-sandwich",
+    allow_discovery: true,
+  });
+
+  console.log("Peer server started");
+}
+
 const createWindow = (): void => {
-  let peerServer: ReturnType<typeof PeerServer>;
-
-  if (isMaster) {
-    peerServer = PeerServer({
-      port: 9009,
-      path: "/sandwich",
-      key: "secure-sandwich",
-      allow_discovery: true,
-    });
-    console.log("Peer server started");
-  }
-
-  ipcMain.handle(
-    "peerId",
-    () =>
-      (isMaster ? "0" : parameters.id) ?? (Math.random() * 100000).toFixed(0),
-  );
+  ipcMain.on("peerId", (e) => {
+    e.returnValue =
+      (isMaster ? "0" : parameters.id) ?? (Math.random() * 100000).toFixed(0);
+  });
   ipcMain.on("get-resource-path", (e) => {
     e.returnValue = path.join(
       app.isPackaged
@@ -76,27 +78,38 @@ const createWindow = (): void => {
     title: isMaster ? "Master" : "Listener",
     width: 1800,
     height: 800,
+    fullscreen: true,
+    simpleFullscreen: true,
+    fullscreenable: true,
+    alwaysOnTop: true,
+    autoHideMenuBar: true,
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
   });
-  console.debug(app.getAppPath());
+
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  mainWindow.setPosition(2000, 64);
+  // const whichScreen = screen.getDisplayNearestPoint({x: winBounds.x, y: winBounds.y});
 
-  if (!peerServer) {
-    return;
+  mainWindow.maximize();
+  mainWindow.show();
+
+  // Open the DevTools.
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
   }
 
-  peerServer.on("connection", (client) => {
-    console.debug(client.getId());
-    mainWindow.webContents.send("peerConnected", client.getId());
-  });
+  if (peerServer) {
+    peerServer.on("connection", (client) => {
+      console.debug(client.getId());
+      mainWindow.webContents.send("peerConnected", client.getId());
+    });
+  }
 };
 
 // This method will be called when Electron has finished

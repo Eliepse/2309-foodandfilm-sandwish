@@ -55,6 +55,7 @@ export class VideoScreen extends EventTarget {
       // video.src = this.videoSrc;
       video.loop = true;
       video.style.animationDuration = `${this.scrollingDurationMs}ms`;
+      video.style.animationDelay = `${this.scrollingDurationMs}ms`
       video.muted = true;
       video.autoplay = false;
       video.ariaLabel = i.toString();
@@ -66,18 +67,18 @@ export class VideoScreen extends EventTarget {
 
     root.append(this.container);
 
-    this.animator = new Animator((_deltaTime, elapsedTime) => {
-      this.updateVideo(
-        0,
-        elapsedTime,
-        (elapsedTime + this.halfScrollingDurationMs) % this.scrollingDurationMs,
-      );
-      this.updateVideo(
-        1,
-        elapsedTime,
-        (elapsedTime + this.scrollingDurationMs) % this.scrollingDurationMs,
-      );
-    });
+    // this.animator = new Animator((_deltaTime, elapsedTime) => {
+    //   this.updateVideo(
+    //     0,
+    //     elapsedTime,
+    //     (elapsedTime + this.halfScrollingDurationMs) % this.scrollingDurationMs,
+    //   );
+    //   this.updateVideo(
+    //     1,
+    //     elapsedTime,
+    //     (elapsedTime + this.scrollingDurationMs) % this.scrollingDurationMs,
+    //   );
+    // });
 
     fetch(this.videoSrc)
       .then((response) => response.blob())
@@ -137,7 +138,10 @@ export class VideoScreen extends EventTarget {
     this.videos[0].currentTime = this.getVideoTimeSec(0);
     this.videos[1].currentTime = this.getVideoTimeSec(this.iterationDelayMs);
 
-    this.videos.forEach((video) => video.play());
-    this.animator.play();
+    this.videos.forEach((video) => {
+      video.style.animationPlayState = "running";
+      video.play();
+    });
+    // this.animator.play();
   }
 }
