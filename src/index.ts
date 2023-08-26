@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, session} from "electron";
+import { app, BrowserWindow, ipcMain, session } from "electron";
 import args from "node-args";
 import process from "process";
 import path from "path";
@@ -77,7 +77,7 @@ const createWindow = (): void => {
     title: "Food & Film - Expo Aubervillier - Sandwich",
     width: 1800,
     height: 800,
-    // fullscreen: true,
+    fullscreen: app.isPackaged,
     // simpleFullscreen: true,
     fullscreenable: true,
     alwaysOnTop: app.isPackaged,
