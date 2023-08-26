@@ -9,7 +9,6 @@ import { rendererConfig } from "./webpack.renderer.config";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    extraResource: ["./media/chrono.mp4", "./media/sandwich.mp4"],
   },
   rebuildConfig: {},
   makers: [new MakerSquirrel()],
