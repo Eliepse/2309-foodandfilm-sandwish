@@ -1,6 +1,6 @@
 {
   "name": "2309-foodandfilm-sandwish",
-  "productName": "2309-foodandfilm-sandwish",
+  "productName": "app",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".webpack/main",
@@ -42,9 +42,6 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0",
-    "node-args": "^2.1.8",
-    "peer": "^1.0.0",
-    "peerjs": "^1.4.7",
-    "ws": "^8.13.0"
+    "node-args": "^2.1.8"
   }
 }

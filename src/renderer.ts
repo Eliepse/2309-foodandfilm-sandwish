@@ -4,6 +4,7 @@ declare global {
       mediaPath: string;
       isProd: boolean;
       rootPath: string;
+      time: number;
     };
   }
 }
@@ -16,10 +17,12 @@ const scrollDuration = 15_000;
 
 const screen = new VideoScreen(
   path,
-  scrollDuration,
+  window.electron.time ?? scrollDuration,
   window.electron.isProd ? undefined : 600,
 );
+
 screen.init(document.body);
+
 screen.addEventListener("loaded", () => {
   screen.play();
 });

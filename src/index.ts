@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session } from "electron";
+import {app, BrowserWindow, ipcMain, session} from "electron";
 import args from "node-args";
 import * as process from "process";
 import * as path from "path";
@@ -17,16 +17,14 @@ type Args = {
 
 const parameters: Args = args as Args;
 
-if ("help" in parameters) {
-  console.info("--help        Display this help message");
-  console.info("--mediaName   Path to the video to play");
+if (process.argv.includes("--help")) {
+  console.info("--help                      Display this help message");
+  console.info("--mediaName [absolutePath]  Path to the video to play");
   console.info(
-    "--time        Time it takes for a frame to cross the entire screen",
+    "--time [number]             Time it takes for a frame to cross the entire screen",
   );
   process.exit();
 }
-
-console.debug(parameters);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -45,6 +43,9 @@ const createWindow = (): void => {
   ipcMain.on("get-is-prod", (e) => {
     e.returnValue = app.isPackaged;
   });
+  ipcMain.on("get-time", (e) => {
+    e.returnValue = Number(parameters.time);
+  });
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
@@ -60,8 +61,8 @@ const createWindow = (): void => {
     title: "Food & Film - Expo Aubervillier - Sandwich",
     width: 1800,
     height: 800,
-    fullscreen: true,
-    simpleFullscreen: true,
+    // fullscreen: true,
+    // simpleFullscreen: true,
     fullscreenable: true,
     alwaysOnTop: app.isPackaged,
     autoHideMenuBar: true,
@@ -75,7 +76,6 @@ const createWindow = (): void => {
   // and load the index.html of the app.
   void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  mainWindow.setPosition(2000, 64);
   // const whichScreen = screen.getDisplayNearestPoint({x: winBounds.x, y: winBounds.y});
 
   mainWindow.maximize();

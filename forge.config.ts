@@ -12,7 +12,7 @@ const config: ForgeConfig = {
     extraResource: ["./media/chrono.mp4", "./media/sandwich.mp4"],
   },
   rebuildConfig: {},
-  makers: [new MakerSquirrel({})],
+  makers: [new MakerSquirrel()],
   plugins: [
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
