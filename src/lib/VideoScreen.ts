@@ -28,7 +28,7 @@ export class VideoScreen extends EventTarget {
 
     for (let i = 0; i < 2; i++) {
       const video = document.createElement("video");
-      // video.src = this.videoSrc;
+      video.src = this.videoSrc;
       video.loop = true;
       video.style.animationDuration = `${this.scrollingDurationMs}ms`;
       video.style.animationDelay = `${(this.scrollingDurationMs / 2) * i}ms`;
@@ -43,14 +43,6 @@ export class VideoScreen extends EventTarget {
     }
 
     root.append(this.container);
-
-    fetch(this.videoSrc)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        this.videos.forEach((v) => (v.src = url));
-        this.dispatchEvent(new Event("loaded"));
-      });
 
     if (this.debugWidth) {
       this.container.classList.add("debug");
